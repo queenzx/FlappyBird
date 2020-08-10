@@ -18,16 +18,21 @@ export class DataStore{
   }
   // 保存数据
   put(key,val){
+    if(typeof val == 'function'){
+      val = new val();
+    }
     this.map.set(key,val);
+    // 返回原对象,方便链式调用
+    return this;
   }
 
   // 获取数据
   get(key){
-    this.map.get(key);
+    return this.map.get(key);
   }
 
   // 销毁所有游戏数据
-  destory(){
+  destroy(){
     for(let val of this.map.values()){
       val = null;
     }

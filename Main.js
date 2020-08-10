@@ -2,6 +2,11 @@
 import { ResourceLoader } from "./js/base/ResourceLoader";
 import { DataStore } from "./js/base/DataStore";
 import { Background } from "./js/runtime/Background";
+import { Director } from "./js/Director";
+import { Land } from "./js/runtime/Land";
+import { Birds } from "./js/player/Birds";
+import { StartButton } from "./js/player/StartButton";
+import { Score } from "./js/player/Score";
 
 export class Main{
   constructor(){ // 构造方法,在创建对象时会自动执行
@@ -10,6 +15,8 @@ export class Main{
     this.loader = new ResourceLoader();
     // 获取变量池
     this.store = DataStore.getInstance();
+    // 获取导演
+    this.director = Director.getInstance()
     // 获取canvas
     this.canvas = wx.createCanvas();
     // 获取ctx
@@ -35,7 +42,42 @@ export class Main{
     this.store.res = map;
     // console.log(this.store);
     // 测试
-    let bg = new Background();
-    bg.draw();
+    /* let bg = new Background();
+    bg.draw(); */
+    this.init();
+  }
+  // 初始化游戏
+  init(){
+    this.director.isGameOver = false;
+    // 将游戏中的数据通过put保存进变量池
+    // 游戏中的数据在游戏结束后会全部销毁
+    // 而通过属性保存的数据不会销毁
+    // console.log(typeof Background);
+    this.store
+    .put('background',Background)
+    .put('land',Land)
+    .put('pipes',[])
+    .put('birds',Birds)
+    .put('startButton',StartButton)
+    .put('score',Score);
+    // console.log(this.store);
+    // 执行run方法之前先调用一次创建水管的方法
+    this.director.createPipes();
+    this.director.run();
+    this.registerEvent();
+  }
+  registerEvent(){
+    wx.onTouchStart(res => {
+      // console.log(res);
+      // 当游戏结束时,点击重新开始
+      // 游戏没有结束时,触发小鸟向上飞的事件
+      if(this.director.isGameOver){
+        // 游戏结束,点击重新开始
+        this.init();
+      }else{
+        // 游戏没有结束，点击向上飞
+        this.director.birdsEvent();
+      }
+    });
   }
 }

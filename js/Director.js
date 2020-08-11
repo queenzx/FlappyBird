@@ -2,6 +2,7 @@
 import { DataStore } from "./base/DataStore";
 import { UpPipe } from "./runtime/UpPipe";
 import { DownPipe } from "./runtime/DownPipe";
+import { Extra } from "./Extra";
 
 export class Director{
   constructor(){
@@ -60,6 +61,7 @@ export class Director{
     let land = this.store.get('land');
     let birds = this.store.get('birds');
     let pipes = this.store.get('pipes');
+    let score = this.store.get('score');
     let canvas = this.store.canvas;
     if(birds.birdsY[0] < 0 || birds.birdsY[0] >(canvas.height - land.height-birds.birdsHeight[0])){
       this.isGameOver = true;
@@ -85,11 +87,12 @@ export class Director{
         this.isGameOver = true;
       }
     }
-    if(birds.birdsX[0]>pipes[0].x + pipes[0].width){
+    // 判断得分(canAdd为true且小鸟的左边大于水管的右边)
+    if(score.canAdd && birds.birdsX[0]>pipes[0].x + pipes[0].width){
+      new Extra().through();
       score.scoreNumber++;
+      score.canAdd = false;
     }
-    // 画分数
-    this.dataStore.get('score').draw();
   }
   // 运行方法
   run(){
@@ -107,7 +110,8 @@ export class Director{
         // 删除上下两个水管
         pipes.shift();
         pipes.shift();
-        this.dataStore.get('score').canAdd = true;
+        // 打开计分器
+        this.store.get('score').canAdd = true;
       }
       // 当水管数组长度小于等于2,且上一组水管到达中间的时候,生成下一组水管
       if(pipes.length<=2 && (pipes[0].x+pipes[0].width)<this.store.canvas.width/2){
@@ -118,11 +122,16 @@ export class Director{
       })
       this.store.get('birds').draw();
       this.store.get('land').draw();
+      this.store.get('score').draw();
+      // 上传文件区域
+      this.store.ctx.fillStyle = '#A4FFFF';
+      this.store.ctx.fillRect(0,0,100,45);
       // 通过不停的执行回调函数,实现渲染的效果
       // setInterval是设置固定毫秒值来运行
       // requestAnimationFrame是根据浏览器的刷新帧率来运行,效率比setInterval好
       this.timer = requestAnimationFrame(() => this.run());
     }else{ // 游戏结束
+      new Extra().boom();
       // 解决手机端黑屏
       this.store.get('background').draw();
       this.store.get('pipes').forEach(val=>{
@@ -130,6 +139,9 @@ export class Director{
       });
       this.store.get('birds').draw();
       this.store.get('land').draw();
+      this.store.get('score').draw();
+      this.store.ctx.fillStyle = '#A4FFFF';
+      this.store.ctx.fillRect(0,0,100,45);
       // 关掉计时器
       cancelAnimationFrame(this.timer);
       // 画图表 

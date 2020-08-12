@@ -138,8 +138,10 @@ export class Extra{
   // socket连接
   socket(){
     // 连接socket服务器
+    //wss:代表https协议
+    //ws:代表http协议
     wx.connectSocket({
-      url: 'wss://localhost:4000',
+      url: 'ws://localhost:4000',
       success(res){
         console.log('连接成功');
       },
@@ -154,10 +156,14 @@ export class Extra{
         data:'微信小游戏发送的数据',
         success(res){
           console.log('成功');
+          console.log(res);
         },
         fail(err){
           console.log('失败');
         }
+      });
+      wx.onSocketMessage(data=>{
+        console.log(data);
       })
     })
   }
